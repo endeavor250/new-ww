@@ -1,0 +1,102 @@
+ //LED灯
+#include <Adafruit_NeoPixel.h>//引用头文件
+#include "U8glib.h"
+#define PINLED 4   //定义了控制LED的引脚
+#define PIN_NUM 1  //定义LED灯的个数
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIN_NUM, PINLED, NEO_GRB + NEO_KHZ800); //该函数第一个参数控制串联灯的个数，第二个是控制用哪个pin脚输出，第三个显示颜色和变化闪烁频率
+
+//蜂鸣器
+#define buzzer_pin 2 //定义蜂鸣器驱动引脚
+#define buzzer_fre 600 //定义蜂鸣器输出频率
+
+
+//crash开关
+#define pushButton  6 //  定义碰撞开关的端口号
+
+int buttonState; //   定义变量储存开关返回值
+
+//OLED显示屏
+U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE);//定义OLED连接方式
+
+void draw(void)   //  定义自定义函数 ，用来在OLED显示屏上显示提示信息
+{
+  u8g.setFont(u8g_font_unifont);//字体1
+  u8g.drawStr( 0, 16, "he has a demand");//   这个函数在温度高时显示提示
+  
+}
+
+
+void draw2(void)     //   定义在OLED屏幕上显示信息的函数
+{
+  u8g.setFont(u8g_font_unifont);//字体1
+  u8g.drawStr( 0, 16, "patient is okay");//   这个函数在温度高时显示提示
+  
+}
+
+
+
+void setup()
+{
+ Serial.begin(9600);//串口通讯波特率
+ pinMode(pushButton, INPUT);//   将碰撞开关置为输入状态
+ strip.begin();   //准备对灯珠进行数据发送
+ strip.show(); //初始化LED为关的状态
+ pinMode(buzzer_pin,OUTPUT);//  将蜂鸣器定义为输出
+ //OLED
+
+}
+
+void loop() 
+{
+  buttonState = digitalRead(pushButton);//读取碰触开关输入的值
+  if(buttonState==0)
+  {
+    strip.setPixelColor(0, strip.Color(255, 0, 0));//红光
+    strip.show();   //LED显示
+    Serial.println(buttonState);  //串口打印碰触开关的值
+
+    //蜂鸣器
+    tone(buzzer_pin,buzzer_fre);    //驱动蜂鸣器
+    delay(100);      //   延迟100毫秒
+    noTone(buzzer_pin);    //产生的声音在此结束
+    Serial.println("           ");
+    Serial.println("The patient have a demand") ;//在串口监视器上显示信息
+    delay(100);     //  延迟100毫秒
+
+    //OLED
+     u8g.firstPage();  //有关OLED屏幕显示的一段代码
+    do 
+    {
+      draw();                   // 使用自定义函数
+    } while( u8g.nextPage() );
+
+
+
+    
+  }
+
+    //OLED
+   
+  else
+  {
+    strip.setPixelColor(0, strip.Color(0, 0, 0));//红光
+    strip.show();   //LED显示
+    Serial.println(buttonState);  //串口打印碰触开关的值
+    delay(100);     //  延迟100毫秒
+    Serial.println("The patient is okay") ; //  在串口监视器上显示信息
+
+
+    //OLED
+    u8g.firstPage();  //有关OLED屏幕显示的一段代码
+    do 
+    {
+      draw2();      //   使用自定义函数在OLED上显示信息
+    } while( u8g.nextPage() );
+  }
+
+}
+
+
+//OLED
+
+
